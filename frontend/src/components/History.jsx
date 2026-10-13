@@ -1,28 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const STEPS = [
-  ['Live Scraping', "When you search, ShopWise doesn't look at an outdated database. We instantly scrape live data from top e-commerce platforms like Amazon and Flipkart to ensure you see the exact current price, stock, and delivery estimates."],
-  ['Smart Filtering & Ranking', 'We fetch a large pool of results and immediately filter out any items that don\'t meet your budget or rating criteria. Our algorithm then ranks the remaining products based on a combination of price, average rating, and review volume.'],
-  ['AI Insights', 'ShopWise analyzes the top results to automatically highlight the "Best Value" (weighing price against quality), the "Cheapest" option, and the "Top Rated" product, saving you the hassle of comparing dozens of tabs.'],
-];
+export default function History({ history, setHistory, token, onSearch, setView, onSignIn }) {
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const [error, setError] = useState('');
 
-export default function HowItWorks() {
+  const clearHistory = async () => {
+    if (!token) return;
+    setError('');
+    try {
+      const res = await fetch(`${apiBase}/api/history`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error();
+      setHistory([]);
+    } catch {
+      setError('Could not clear your history. Please try again.');
+    }
+  };
+
+  const handleSearch = (e, query) => {
+    e.preventDefault();
+    setView('home');
+    onSearch(e, query);
+  };
+
+  if (!token) {
+    return <main className="sw-page"><div className="sw-wrap"><div className="sw-empty">
+      <p style={{ margin: '0 0 16px' }}>Sign in to see your search history.</p>
+      {onSignIn && <button type="button" className="sw-btn" onClick={onSignIn}>Sign in</button>}
+    </div></div></main>;
+  }
+
   return (
     <main className="sw-page">
       <div className="sw-wrap sw-narrow">
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h1 className="sw-h1">How <span className="sw-grad">ShopWise</span> Works</h1>
-          <p className="sw-muted" style={{ fontSize: 18 }}>We built ShopWise to give you clarity and confidence before you buy.</p>
+        <div className="sw-head">
+          <div>
+            <h1 className="sw-h1">Search History</h1>
+            <p className="sw-muted" style={{ margin: 0 }}>Your past searches, ready to compare again.</p>
+          </div>
+          {history.length > 0 && <button type="button" className="sw-btn sw-btn-danger" onClick={clearHistory}>Clear all</button>}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {STEPS.map(([title, text], i) => (
-            <div key={title} className="sw-feature" style={{ animation: 'sw-rise .35s both', animationDelay: `${i * 80}ms` }}>
-              <span className="sw-num">{i + 1}</span>
-              <h2 style={{ margin: '0 0 8px', fontSize: 22 }}>{title}</h2>
-              <p className="sw-muted" style={{ margin: 0, lineHeight: 1.7 }}>{text}</p>
-            </div>
+        {error && <div className="sw-error" role="alert">{error}</div>}
+
+        <ul className="sw-list">
+          {history.map(h => (
+            <li key={h._id} tabIndex={0} onClick={e => handleSearch(e, h.query)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch(e, h.query)}>
+              <span className="sw-muted" aria-hidden="true">⌕</span>
+              <b>{h.query}</b>
+              <small className="sw-muted">{new Date(h.createdAt).toLocaleDateString()}</small>
+            </li>
           ))}
-        </div>
+        </ul>
+        {!history.length && <div className="sw-empty">No recent searches to display.</div>}
       </div>
     </main>
   );

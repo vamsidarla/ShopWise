@@ -184,7 +184,7 @@ export default function App() {
   }
 
   const nav = [['home', 'Discover'], ['how', 'How it works'],
-    ...(token ? [['history', `History (${history.length})`]] : []),
+    ['history', token ? `History (${history.length})` : 'History'],
     ['favorites', `My list (${saved.length})`]];
 
   return (
@@ -244,8 +244,8 @@ export default function App() {
             saved={saved} toggleFavorite={toggleFavorite} onCardClick={setActiveGroup}
           />
         )}
-        {view === 'favorites' && <Favorites token={token} saved={saved} toggleFavorite={toggleFavorite} onCardClick={setActiveGroup} />}
-        {view === 'history' && <History history={history} setHistory={setHistory} token={token} onSearch={search} setView={setView} />}
+        {view === 'favorites' && <Favorites token={token} saved={saved} toggleFavorite={toggleFavorite} onCardClick={setActiveGroup} onSignIn={() => setAuthModal('login')} />}
+        {view === 'history' && <History history={history} setHistory={setHistory} token={token} onSearch={search} setView={setView} onSignIn={() => setAuthModal('login')} />}
         {view === 'how' && <HowItWorks onStart={() => setView('home')} />}
       </div>
 

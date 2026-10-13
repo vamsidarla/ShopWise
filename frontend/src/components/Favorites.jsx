@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 
-export default function Favorites({ token, saved, toggleFavorite, onCardClick }) {
+export default function Favorites({ token, saved, toggleFavorite, onCardClick, onSignIn }) {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,7 +33,10 @@ export default function Favorites({ token, saved, toggleFavorite, onCardClick })
   }, [token, saved]);
 
   if (!token) {
-    return <main className="sw-page"><div className="sw-wrap"><div className="sw-empty">Please sign in to view your favorites.</div></div></main>;
+    return <main className="sw-page"><div className="sw-wrap"><div className="sw-empty">
+      <p style={{ margin: '0 0 16px' }}>Sign in to see your saved products.</p>
+      {onSignIn && <button type="button" className="sw-btn" onClick={onSignIn}>Sign in</button>}
+    </div></div></main>;
   }
 
   if (loading) {
