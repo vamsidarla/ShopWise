@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
 
+// Find a usable date on a history entry: common field names first, then the time embedded in a MongoDB _id.
+function entryDate(h) {
+  const raw = h.createdAt ?? h.created_at ?? h.updatedAt ?? h.timestamp ?? h.date ?? h.searchedAt;
+  let d = raw ? new Date(raw) : null;
+  if (!d || isNaN(d)) {
+    const id = String(h._id || '');
+    d = /^[0-9a-f]{24}$/i.test(id) ? new Date(parseInt(id.slice(0, 8), 16) * 1000) : null;
+  }
+  return d && !isNaN(d) ? d : null;
+}
+
 export default function History({ history, setHistory, token, onSearch, setView, onSignIn }) {
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   const [error, setError] = useState('');
@@ -50,7 +61,7 @@ export default function History({ history, setHistory, token, onSearch, setView,
               onKeyDown={e => e.key === 'Enter' && handleSearch(e, h.query)}>
               <span className="sw-muted" aria-hidden="true">⌕</span>
               <b>{h.query}</b>
-              <small className="sw-muted">{new Date(h.createdAt).toLocaleDateString()}</small>
+              {entryDate(h) && <small className="sw-muted">{entryDate(h).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</small>}
             </li>
           ))}
         </ul>
