@@ -1,41 +1,60 @@
 require('dotenv').config();
+
 const http = require('http');
+const path = require('path');
 const { MongoClient } = require('mongodb');
 const { route } = require('./router');
 const { json } = require('./utils/response');
 
 const port = process.env.PORT || 3000;
-let secret;
+
 let client;
 let db;
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  process.env.FRONTEND_URL
-].filter(Boolean);
-
 async function start() {
+  // Load backend/.env for local development
   require('dotenv').config({
-    path: require('path').resolve(__dirname, '../.env')
+    path: path.resolve(__dirname, '../.env')
   });
 
-  secret = process.env.JWT_SECRET;
+  const secret = process.env.JWT_SECRET;
 
   if (!process.env.MONGODB_URI || !secret) {
-    throw new Error('Add MONGODB_URI and JWT_SECRET to backend/.env.');
+    throw new Error(
+      'Add MONGODB_URI and JWT_SECRET to backend/.env.'
+    );
   }
+
+  // Support either environment-variable name
+  const configuredOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_ORIGIN
+  ]
+    .filter(Boolean)
+    .flatMap(value => value.split(','))
+    .map(value => value.trim().replace(/\/+$/, ''));
+
+  const allowedOrigins = new Set([
+    'http://localhost:5173',
+    'http://localhost:4173',
+    ...configuredOrigins
+  ]);
 
   client = new MongoClient(process.env.MONGODB_URI);
   await client.connect();
 
   db = client.db();
 
-  await db.collection('users').createIndex({ email: 1 }, { unique: true });
+  await db.collection('users').createIndex(
+    { email: 1 },
+    { unique: true }
+  );
+
   await db.collection('favorites').createIndex(
     { userId: 1, productId: 1 },
     { unique: true }
   );
+
   await db.collection('history').createIndex(
     { userId: 1, query: 1 },
     { unique: true }
@@ -44,18 +63,20 @@ async function start() {
   http.createServer((req, res) => {
     const origin = req.headers.origin;
 
-    if (origin && allowedOrigins.includes(origin)) {
+    if (origin && allowedOrigins.has(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Vary', 'Origin');
-      res.setHeader(
-        'Access-Control-Allow-Methods',
-        'GET, POST, DELETE, OPTIONS'
-      );
-      res.setHeader(
-        'Access-Control-Allow-Headers',
-        'Content-Type, Authorization'
-      );
     }
+
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, DELETE, OPTIONS'
+    );
+
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
 
     if (req.method === 'OPTIONS') {
       res.statusCode = 204;
@@ -64,8 +85,11 @@ async function start() {
 
     route(req, res, db).catch(error => {
       console.error(error);
+
       if (!res.headersSent) {
-        json(res, 500, { error: 'Something went wrong.' });
+        json(res, 500, {
+          error: 'Something went wrong.'
+        });
       }
     });
   }).listen(port, () => {
