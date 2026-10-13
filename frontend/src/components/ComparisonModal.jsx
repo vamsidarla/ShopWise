@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 const money = v => `₹${Number(v).toLocaleString('en-IN')}`;
 
-export default function ComparisonModal({ group, onClose }) {
+export default function ComparisonModal({ group, onClose, favorite, onFavorite }) {
   useEffect(() => {
     const onKey = e => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
@@ -27,6 +27,13 @@ export default function ComparisonModal({ group, onClose }) {
           {group.image && <img src={group.image} alt={group.name} style={{ maxHeight: 160, maxWidth: '100%', objectFit: 'contain' }} />}
           <h2 style={{ margin: '12px 0 4px', fontSize: 20 }}>{group.name}</h2>
           {group.smartScore && <span className="sw-badge"><b>{group.smartScore}</b> / 100 Smart Score</span>}
+          {onFavorite && (
+            <div style={{ marginTop: 14 }}>
+              <button type="button" className={`sw-btn sw-btn-ghost sw-savebtn ${favorite ? 'saved' : ''}`} aria-pressed={!!favorite} onClick={onFavorite}>
+                {favorite ? '♥ Saved to My list' : '♡ Save to My list'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="sw-table-wrap">

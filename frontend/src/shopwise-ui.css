@@ -276,3 +276,8 @@ html:not([data-theme="dark"]) .sw-card,html:not([data-theme="dark"]) .sw-insight
 .sw-tags{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:560px){.sw-steps{padding-left:0}.sw-steps::before{display:none}.sw-stepnum{position:static;margin-bottom:10px}}
 @media(prefers-reduced-motion:reduce){.sw-step{animation:none!important}}
+/* ===== Save-to-list visibility ===== */
+.sw-heart{width:auto;height:34px;padding:0 13px;border-radius:99px;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#3b3566;box-shadow:0 4px 14px rgba(5,3,30,.25)}
+.sw-heart.saved{color:#fff;background:linear-gradient(135deg,#f0527a,#c026d3)}
+.sw-score{right:auto;left:10px;top:42px}
+.sw-savebtn.saved{background:linear-gradient(135deg,#f0527a,#c026d3);color:#fff;border-color:transparent}

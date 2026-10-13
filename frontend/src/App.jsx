@@ -118,7 +118,7 @@ export default function App() {
     setNotice('Searching Amazon and Flipkart for the most relevant products…');
     setSearching(true);
 
-    if (token) {
+    if (token && event) { // only log searches the user actually ran (submit / chip / history click), not automatic ones
       fetch(`${apiBase}/api/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -158,7 +158,7 @@ export default function App() {
   }
 
   async function toggleFavorite(product) {
-    if (!token) { showToast('Sign in to save products', 'error'); return setAuthModal('login'); }
+    if (!token) { showToast('Sign in to save products', 'error'); setActiveGroup(null); return setAuthModal('login'); }
     const isSaved = saved.includes(product.id);
     setSaved(current => isSaved ? current.filter(id => id !== product.id) : [...current, product.id]);
     try {
@@ -230,7 +230,8 @@ export default function App() {
         />
       )}
 
-      {activeGroup && <ComparisonModal group={activeGroup} onClose={() => setActiveGroup(null)} />}
+      {activeGroup && <ComparisonModal group={activeGroup} onClose={() => setActiveGroup(null)}
+          favorite={saved.includes(activeGroup.id)} onFavorite={() => toggleFavorite(activeGroup)} />}
 
       <div className="sw-view" key={view}>
         {view === 'home' && (

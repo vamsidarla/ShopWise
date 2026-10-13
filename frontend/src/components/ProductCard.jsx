@@ -27,7 +27,7 @@ export default function ProductCard({ product, favorite, onFavorite, onClick, in
           aria-pressed={!!favorite}
           onClick={e => { e.stopPropagation(); onFavorite(); }}
         >
-          {favorite ? '♥' : '♡'}
+          <span aria-hidden="true">{favorite ? '♥' : '♡'}</span> {favorite ? 'Saved' : 'Save'}
         </button>
         {product.image && !imgFailed ? (
           <img src={product.image} alt={product.name} loading="lazy" onError={() => setImgFailed(true)} />
